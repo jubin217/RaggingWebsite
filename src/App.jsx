@@ -7,6 +7,7 @@ import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Statistics from "./pages/Statistics";
 import Profile from "./pages/Profile";
+import Home from "./pages/Home";
 
 function PrivateRoute({ children }) {
   const { currentUser } = useAuth();
@@ -20,8 +21,9 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/" element={<Home />} />
           <Route
-            path="/"
+            path="/dashboard"
             element={
               <PrivateRoute>
                 <MainLayout><Dashboard /></MainLayout>

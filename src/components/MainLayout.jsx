@@ -25,7 +25,7 @@ export default function MainLayout({ children }) {
     }
 
     const menuItems = [
-        { path: "/", name: "Dashboard", icon: LayoutDashboard },
+        { path: "/dashboard", name: "Dashboard", icon: LayoutDashboard },
         { path: "/statistics", name: "Statistics", icon: BarChart3 },
         { path: "/profile", name: "Profile", icon: User },
     ];
@@ -64,6 +64,21 @@ export default function MainLayout({ children }) {
                     </button>
                 </div>
             </aside>
+
+            {/* Mobile Bottom Navigation */}
+            <nav className="mobile-bottom-nav" style={{ display: 'none' }}>
+                {menuItems.map((item) => (
+                    <Link
+                        key={item.path}
+                        to={item.path}
+                        className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
+                        style={{ flexDirection: 'column', padding: '0.5rem', gap: '0.25rem', width: '33%', textAlign: 'center' }}
+                    >
+                        <item.icon size={20} />
+                        <span style={{ fontSize: '0.65rem' }}>{item.name}</span>
+                    </Link>
+                ))}
+            </nav>
 
             <main className="main-content">
                 <header className="top-nav">
@@ -214,6 +229,26 @@ export default function MainLayout({ children }) {
             .content-inner {
               padding: 2rem;
               overflow-y: auto;
+            }
+            @media (max-width: 1024px) {
+              .sidebar {
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                border-right: none;
+                border-bottom: 1px solid rgba(255,255,255,0.05);
+                padding: 1rem 1.5rem;
+              }
+              .sidebar-brand { margin-bottom: 0; }
+              .sidebar-nav, .sidebar-footer { display: none; }
+              .layout-container { flex-direction: column; }
+            }
+            @media (max-width: 768px) {
+              .sidebar { display: none !important; }
+              .top-nav { padding: 0 1rem; height: 60px; }
+              .content-inner { padding: 1rem; }
             }
           `}</style>
         </div>
