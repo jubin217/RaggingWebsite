@@ -1,4 +1,4 @@
-const CACHE_NAME = 'raggingguard-cache-v1';
+const CACHE_NAME = 'resqvoice-cache-v1';
 const urlsToCache = [
   '/',
   '/index.html',

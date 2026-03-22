@@ -1,6 +1,6 @@
 {
-  "name": "RaggingGuard Dashboard",
-  "short_name": "RaggingGuard",
+  "name": "ResQvoice Dashboard",
+  "short_name": "ResQvoice",
   "description": "Real-time AI detection system dashboard for monitoring incidents.",
   "start_url": "/",
   "display": "standalone",

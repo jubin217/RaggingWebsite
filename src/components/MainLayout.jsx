@@ -35,7 +35,7 @@ export default function MainLayout({ children }) {
             <aside className="sidebar">
                 <div className="sidebar-brand">
                     <Shield size={32} color="#6366f1" />
-                    <span>RaggingGuard</span>
+                    <span>ResQvoice</span>
                 </div>
 
                 <nav className="sidebar-nav">

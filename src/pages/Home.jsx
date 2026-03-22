@@ -13,7 +13,7 @@ export default function Home() {
             <nav className="home-nav">
                 <div className="brand">
                     <Shield size={32} color="#8b5cf6" />
-                    <span>RaggingGuard</span>
+                    <span>ResQvoice</span>
                 </div>
                 <div className="nav-actions">
                     <Link to="/dashboard" className="profile-btn">
@@ -117,7 +117,7 @@ export default function Home() {
 
             {/* Footer */}
             <footer className="home-footer">
-                <p>&copy; {new Date().getFullYear()} RaggingGuard System. Multi-Device Detection Framework.</p>
+                <p>&copy; {new Date().getFullYear()} ResQvoice System. Multi-Device Detection Framework.</p>
             </footer>
 
             <style jsx>{`

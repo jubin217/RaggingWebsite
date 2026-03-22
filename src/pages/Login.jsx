@@ -45,7 +45,7 @@ export default function Login() {
                             required
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="admin@raggingsystem.com"
+                            placeholder="admin@resqvoice.com"
                         />
                     </div>
                     <div className="form-group">
