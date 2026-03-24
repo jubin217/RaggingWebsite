@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
+import { collection, query, orderBy, limit, onSnapshot, doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -56,6 +56,18 @@ export default function Statistics() {
 
         return unsubscribe;
     }, [currentUser]);
+
+    const toggleAcknowledgement = async (alertId, currentStatus) => {
+        if (!currentUser) return;
+        try {
+            const alertRef = doc(db, "users", currentUser.uid, "alerts", alertId);
+            await updateDoc(alertRef, {
+                acknowledged: !currentStatus
+            });
+        } catch (error) {
+            console.error("Error updating alert status:", error);
+        }
+    };
 
     const processData = (data) => {
         // 1. Process Line Chart (Incidents per Day - last 7 days)
@@ -214,6 +226,7 @@ export default function Statistics() {
                                 <th>Type</th>
                                 <th>Location</th>
                                 <th>Status</th>
+                                <th>Evidence</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -230,9 +243,23 @@ export default function Statistics() {
                                         <td className="type-col">{alert.type}</td>
                                         <td className="loc-col">{alert.location}</td>
                                         <td>
-                                            <span className={`sev-tag ${alert.acknowledged ? 'low' : 'high'}`}>
+                                            <button 
+                                                onClick={() => toggleAcknowledgement(alert.id, alert.acknowledged)}
+                                                className={`sev-tag ${alert.acknowledged ? 'low' : 'high'}`}
+                                                style={{ border: 'none', cursor: 'pointer', outline: 'none' }}
+                                                title={alert.acknowledged ? "Click to toggle status" : "Click to mark as resolved"}
+                                            >
                                                 {alert.acknowledged ? 'RESOLVED' : 'PENDING'}
-                                            </span>
+                                            </button>
+                                        </td>
+                                        <td>
+                                            {alert.evidenceUrl ? (
+                                                <button className="btn evidence-btn" onClick={() => window.open(alert.evidenceUrl, '_blank')}>
+                                                    View Media
+                                                </button>
+                                            ) : (
+                                                <span className="no-evidence">-</span>
+                                            )}
                                         </td>
                                     </motion.tr>
                                 ))
@@ -272,6 +299,9 @@ export default function Statistics() {
         .sev-tag { padding: 0.35rem 0.85rem; border-radius: 2rem; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px; }
         .sev-tag.high { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
         .sev-tag.low { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .evidence-btn { padding: 0.35rem 0.85rem; font-size: 0.75rem; background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 20px; color: #c4b5fd; cursor: pointer; transition: all 0.2s; white-space: nowrap; margin: 0; }
+        .evidence-btn:hover { background: rgba(139, 92, 246, 0.3); color: white; transform: translateY(-1px); }
+        .no-evidence { color: rgba(255, 255, 255, 0.2); font-style: italic; }
         .empty-row { text-align: center; padding: 3rem !important; color: var(--text-muted); font-style: italic; }
         .animate-spin { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

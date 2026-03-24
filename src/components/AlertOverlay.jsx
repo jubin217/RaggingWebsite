@@ -29,6 +29,13 @@ export default function AlertOverlay({ alert, onClear }) {
                         <p><strong>Time:</strong> {alert.timestamp?.toDate().toLocaleString() || new Date().toLocaleString()}</p>
                     </div>
 
+                    {alert.evidenceUrl && (
+                        <div className="evidence-preview-container">
+                            <p className="evidence-label">Live Capture Evidence</p>
+                            <img src={alert.evidenceUrl} alt="Evidence" className="evidence-preview" />
+                        </div>
+                    )}
+
                     <div className="alert-actions">
                         <button className="btn btn-primary" onClick={onClear}>ACKNOWLEDGE ALERT</button>
                     </div>
@@ -78,6 +85,26 @@ export default function AlertOverlay({ alert, onClear }) {
               }
               .alert-details p {
                 margin: 0.5rem 0;
+              }
+              .evidence-preview-container {
+                margin-bottom: 2rem;
+              }
+              .evidence-label {
+                font-family: 'Outfit', sans-serif;
+                color: #fca5a5;
+                font-size: 1rem;
+                margin-bottom: 0.5rem;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                font-weight: 600;
+              }
+              .evidence-preview {
+                width: 100%;
+                max-height: 250px;
+                object-fit: cover;
+                border-radius: 0.5rem;
+                border: 2px solid #f43f5e;
+                box-shadow: 0 0 20px rgba(244, 63, 94, 0.2);
               }
             `}</style>
             </motion.div>

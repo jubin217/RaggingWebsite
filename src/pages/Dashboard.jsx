@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { collection, query, orderBy, limit, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, getDocs } from "firebase/firestore";
+import { collection, query, orderBy, limit, onSnapshot, addDoc, serverTimestamp, doc, updateDoc } from "firebase/firestore";
 import { db } from "../firebase";
+import { useAuth } from "../context/AuthContext";
 import {
   AlertTriangle,
   Activity,
@@ -20,9 +21,14 @@ export default function Dashboard() {
   });
   const [emergency, setEmergency] = useState(null);
 
+  const { currentUser } = useAuth();
+  const [toastAlert, setToastAlert] = useState(null);
+
   useEffect(() => {
-    // Listen to Firestore 'alerts' collection for real-time updates
-    const q = query(collection(db, "alerts"), orderBy("timestamp", "desc"), limit(20));
+    if (!currentUser) return;
+    
+    // Listen to Firestore 'alerts' collection for real-time updates for specific user
+    const q = query(collection(db, "users", currentUser.uid, "alerts"), orderBy("timestamp", "desc"), limit(20));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const alertList = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -32,8 +38,17 @@ export default function Dashboard() {
 
       // Check for new unacknowledged emergency to show full-screen overlay
       const latest = alertList[0];
-      if (latest && latest.isEmergency && !latest.acknowledged) {
-        setEmergency(latest);
+      if (latest && !latest.acknowledged) {
+        if (latest.isEmergency) {
+          setEmergency(latest);
+          setToastAlert(null);
+        } else {
+          setToastAlert(latest);
+          setEmergency(null);
+        }
+      } else {
+          setEmergency(null);
+          setToastAlert(null);
       }
 
       // Calculate real stats from the live feed
@@ -52,7 +67,7 @@ export default function Dashboard() {
     });
 
     return unsubscribe;
-  }, []);
+  }, [currentUser]);
 
   const clearEmergency = async () => {
     if (emergency) {
@@ -67,9 +82,23 @@ export default function Dashboard() {
     }
   };
 
+  const clearToast = async () => {
+    if (toastAlert) {
+      try {
+        const alertRef = doc(db, "users", currentUser.uid, "alerts", toastAlert.id);
+        await updateDoc(alertRef, { acknowledged: true });
+        setToastAlert(null);
+      } catch (err) {
+        console.error("Error acknowledging toast alert:", err);
+        setToastAlert(null);
+      }
+    }
+  };
+
   const triggerTestAlert = async () => {
+    if (!currentUser) return;
     try {
-      await addDoc(collection(db, "alerts"), {
+      await addDoc(collection(db, "users", currentUser.uid, "alerts"), {
         type: "Test Alert (Manual Trigger)",
         location: "System Test",
         timestamp: serverTimestamp(),
@@ -84,6 +113,20 @@ export default function Dashboard() {
   return (
     <div className="dashboard-grid">
       <AlertOverlay alert={emergency} onClear={clearEmergency} />
+
+      {/* Toast popup for low priority rules */}
+      {toastAlert && (
+          <div className="toast-notification">
+              <div className="toast-icon">
+                  <Bell size={24} color="#f59e0b" />
+              </div>
+              <div className="toast-content">
+                  <h4>{toastAlert.type}</h4>
+                  <p>{toastAlert.location}</p>
+              </div>
+              <button className="toast-btn" onClick={clearToast}>Acknowledge</button>
+          </div>
+      )}
 
       {/* Row: Real-time Stats */}
       <div className="stats-row">
@@ -199,6 +242,43 @@ export default function Dashboard() {
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
         .test-btn { padding: 0.5rem 1rem; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); color: var(--primary); border-radius: 0.5rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .test-btn:hover { background: var(--primary); color: white; }
+        
+        /* Toast Notification Styles */
+        .toast-notification {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #1e293b;
+            border: 1px solid #f59e0b;
+            border-left: 5px solid #f59e0b;
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .toast-icon { display: flex; align-items: center; justify-content: center; }
+        .toast-content h4 { margin: 0 0 0.25rem 0; color: white; font-family: 'Outfit', sans-serif; font-size: 1.1rem; }
+        .toast-content p { margin: 0; color: #cbd5e1; font-size: 0.85rem; }
+        .toast-btn { 
+            background: rgba(245, 158, 11, 0.2); 
+            color: #fca5a5; 
+            border: 1px solid rgba(245, 158, 11, 0.4); 
+            padding: 0.5rem 1rem; 
+            border-radius: 2rem; 
+            cursor: pointer; 
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .toast-btn:hover { background: rgba(245, 158, 11, 0.4); color: white; }
       `}</style>
     </div>
   );
